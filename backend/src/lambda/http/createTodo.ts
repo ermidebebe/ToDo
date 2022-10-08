@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import 'source-map-support/register'
 import * as middy from 'middy'
-import { cors, jsonBodyParser } from 'middy/middlewares'
+import { cors} from 'middy/middlewares'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
 import { createTodo } from '../../businessLogic/todos'
 import { getUserId } from '../utils'
@@ -14,7 +14,8 @@ export const handler = middy(
     return{
       statusCode:200,
       headers:{
-        'Access-Control-Allow-Origin':'*'
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true
       },
       body: JSON.stringify({item:result})
     }

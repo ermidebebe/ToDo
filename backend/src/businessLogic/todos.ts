@@ -6,10 +6,12 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
-import * as createError from 'http-errors'
-import { integer } from 'aws-sdk/clients/backup'
 
+
+const logger = createLogger('TodosAccess')
 const todoaccess: TodosAccess = new TodosAccess()
+const attachmentutils= new AttachmentUtils()
+
 export function createTodo(userId: string, newTodo: CreateTodoRequest) {
   const todoId: string = uuid.v4()
   const newItem: TodoItem = {
@@ -21,20 +23,15 @@ export function createTodo(userId: string, newTodo: CreateTodoRequest) {
     done: newTodo['done'],
     attachmentUrl: newTodo['attachmentUrl']
   }
+  logger.info('New Todo')
+  logger.debug(newItem)
 
   return todoaccess.createTodo(newItem)
 }
 
-export function deleteTodo(todoId: String) {
-  console.log(todoId)
-
-  return {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    body: JSON.stringify({})
-  }
+export function deleteTodo(todoId: string,userId:string) {
+  todoaccess.deleteTodo(todoId,userId)
+  logger.info('Todo deleted')
 }
 
 export function updateTodo(
@@ -55,7 +52,6 @@ export function getTodosForUser(userId: string) {
   return todoaccess.getTodos(userId)
 }
 
-export function createAttachmentPresignedUrl(todoId: String, userId) {
-  console.log(todoId, userId)
-  return ''
+export function createAttachmentPresignedUrl(todoId: string) {
+  return attachmentutils.generate_url(todoId)
 }
