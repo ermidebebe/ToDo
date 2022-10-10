@@ -1,5 +1,5 @@
 # TODO: Change the name of the org 
-org: sudkul
+# org: s
 app: serverless-todo-app
 service: serverless-todo-app
 
@@ -25,7 +25,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: serverless-ermi-c4-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   logs:
@@ -62,7 +62,8 @@ functions:
       - Effect: Allow
         Action:
           - dynamodb:GetItem
-        Resource: arn:aws:dynamodb:${self:provider.environment.TODOS_TABLE}
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function - 
   # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
@@ -85,7 +86,7 @@ functions:
         Action:
           - dynamodb:GetItem
           - dynamodb:PutItem
-        Resource: arn:aws:dynamodb:${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
@@ -106,7 +107,7 @@ functions:
         Action:
           - dynamodb:GetItem
           - dynamodb:UpdateItem
-        Resource: arn:aws:dynamodb:${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -116,12 +117,13 @@ functions:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
     iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:DeleteItem
-        Resource: arn:aws:dynamodb:${self:provider.environment.TODOS_TABLE}
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -131,15 +133,14 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
-
+          cors: true
     iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
-          - dynamodb:PutItem
-        Resource: arn:aws:s3:${self:provider.ATTACHMENT_S3_BUCKET}
+        Action: 
+          - s3:PutObject
+          - s3:GetObject
+        Resource: "arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*"
 
 resources:
   Resources:
@@ -168,14 +169,6 @@ resources:
         - AttributeName: todoId
           AttributeType: S
         - AttributeName: createdAt
-          AttributeType: S
-        - AttributeName: name
-          AttributeType: S
-        - AttributeName: dueDate
-          AttributeType: S
-        - AttributeName: done
-          AttributeType: BOOL
-        - AttributeName: attachmentUrl
           AttributeType: S
         KeySchema:
         - AttributeName: userId
@@ -208,13 +201,15 @@ resources:
           Status: Enabled
         CorsConfiguration:
           CorsRules:
-            - AllowedHeaders: ['*']
+            - AllowedHeaders:
+                - '*'
               AllowedMethods: 
                 - GET
                 - PUT
                 - POST
                 - DELETE
-              AllowedOrigins: ['*']
+              AllowedOrigins: 
+                  - '*'
 
     # TODO: Complete the policy below and attach it to the bucket defined above
     # For cross referencing the name of the bucket, use "!Ref AttachmentsBucket"
@@ -223,12 +218,13 @@ resources:
       Properties:
         Bucket: !Ref AttachmentsBucket
         PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
           Statement:
             - Action:
                 - s3:PutObject
                 - s3:GetObject
                 - S3:DeleteObject
-              Resource:
-                - arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}
+              Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
               Effect: Allow
               Principal: '*'
