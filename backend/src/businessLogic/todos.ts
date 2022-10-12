@@ -7,38 +7,37 @@ import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
 
-
 const logger = createLogger('TodosAccess')
 const todoaccess: TodosAccess = new TodosAccess()
-const attachmentutils= new AttachmentUtils()
+const attachmentutils = new AttachmentUtils()
+const ATTACHMENT_S3_BUCKET=process.env.ATTACHMENT_S3_BUCKET
 
-export function createTodo(userId: string, newTodo: CreateTodoRequest) {
+export async function createTodo(userId: string, newTodo: CreateTodoRequest) {
   const todoId: string = uuid.v4()
   const newItem: TodoItem = {
     userId: userId,
     todoId: todoId,
-    createdAt: newTodo['createdAt'],
     name: newTodo['name'],
     dueDate: newTodo['dueDate'],
-    done: newTodo['done'],
-    attachmentUrl: newTodo['attachmentUrl']
+    attachmentUrl:  `https://${ATTACHMENT_S3_BUCKET}.s3.amazonaws.com/${todoId}`, 
+    createdAt: new Date().getTime().toString(),
+    done: false,
   }
-  logger.info('New Todo')
-  logger.debug(newItem)
+  logger.info('new todo',newItem)
 
   return todoaccess.createTodo(newItem)
 }
 
-export function deleteTodo(todoId: string,userId:string) {
-  todoaccess.deleteTodo(todoId,userId)
-  logger.info('Todo deleted')
+export async function deleteTodo(todoId: string, userId: string) {
+  todoaccess.deleteTodo(todoId, userId)
 }
 
-export function updateTodo(
+export async function updateTodo(
   userId: string,
   todoId: string,
   updatedTodo: UpdateTodoRequest
-) {
+)
+{
   const newItem: TodoUpdate = {
     name: updatedTodo['name'],
     dueDate: updatedTodo['dueDate'],
@@ -48,10 +47,10 @@ export function updateTodo(
   return todoaccess.updateTodo(todoId, userId, newItem)
 }
 
-export function getTodosForUser(userId: string) {
+export async function getTodosForUser(userId: string){
   return todoaccess.getTodos(userId)
 }
 
-export function createAttachmentPresignedUrl(todoId: string) {
+export async function createAttachmentPresignedUrl(todoId: string) {
   return attachmentutils.generate_url(todoId)
 }

@@ -10,53 +10,47 @@ const logger = createLogger('TodosAccess')
 
 export class TodosAccess {
   dynamoDBClient: DocumentClient = new AWS.DynamoDB.DocumentClient()
-  todoTable: string =process.env.TODOS_TABLE
+  todoTable: string = process.env.TODOS_TABLE
   async getTodos(userId: string) {
-    
     const todos = await this.dynamoDBClient
       .query({
         TableName: this.todoTable,
-        ExpressionAttributeValues: {
-          ":userId": {
-            S: userId
-           }
-         }, 
-         KeyConditionExpression: "userId = :userId", 
-        Select: "ALL_ATTRIBUTES", 
+        ExpressionAttributeValues: { ':userId': userId },
+        KeyConditionExpression: 'userId = :userId',
+        Select: 'ALL_ATTRIBUTES'
       })
       .promise()
-    logger.debug(todos)
-    return todos
+    logger.info(todos)
+    return todos.Items
   }
 
   async createTodo(todo: TodoItem) {
     const params: DocumentClient.PutItemInput = {
       TableName: this.todoTable,
-      Item: todo,
-      ReturnValues: 'ALL_NEW'
+      Item: todo
     }
-    const result = await this.dynamoDBClient.put(params).promise()
-    return result
+    await this.dynamoDBClient.put(params).promise()
+    logger.info('new todo', todo)
+    return todo
   }
 
   async deleteTodo(todoId: string, userId: string) {
-    const params: DocumentClient.DeleteItemInput = {
-      TableName: this.todoTable,
-      Key: {
-        todoId:todoId ,
-        userId:userId
-      }
-    }
-    const result = await this.dynamoDBClient.delete(
-      params).promise()
-    return result
+    await this.dynamoDBClient
+      .delete({
+        TableName: this.todoTable,
+        Key: {
+          userId: userId,
+          todoId: todoId
+        }
+      })
+      .promise()
   }
 
   async updateTodo(todoId: string, userId: string, updatedTodo: TodoUpdate) {
     const params: DocumentClient.UpdateItemInput = {
       TableName: this.todoTable,
       Key: {
-        todoId: todoId ,
+        todoId: todoId,
         userId: userId
       },
       ExpressionAttributeNames: {
@@ -65,12 +59,9 @@ export class TodosAccess {
         '#done': 'done'
       },
       ExpressionAttributeValues: updatedTodo,
-      ReturnValues: 'ALL_NEW',
       UpdateExpression: 'SET #name = :name, #dueDate = :dueDate, #done = :done'
     }
-    const result = await this.dynamoDBClient.update(
-      params
-    ).promise()
+    const result = await this.dynamoDBClient.update(params).promise()
     return result
   }
 }
