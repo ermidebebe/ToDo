@@ -39,8 +39,8 @@ export class TodosAccess {
       .delete({
         TableName: this.todoTable,
         Key: {
-          userId: userId,
-          todoId: todoId
+          'userId': userId,
+          'todoId': todoId
         }
       })
       .promise()
@@ -50,8 +50,8 @@ export class TodosAccess {
     const params: DocumentClient.UpdateItemInput = {
       TableName: this.todoTable,
       Key: {
-        todoId: todoId,
-        userId: userId
+        'userId': userId,
+        'todoId': todoId
       },
       ExpressionAttributeNames: {
         '#name': 'name',
@@ -61,7 +61,6 @@ export class TodosAccess {
       ExpressionAttributeValues: updatedTodo,
       UpdateExpression: 'SET #name = :name, #dueDate = :dueDate, #done = :done'
     }
-    const result = await this.dynamoDBClient.update(params).promise()
-    return result
+    await this.dynamoDBClient.update(params).promise()
   }
 }

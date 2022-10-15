@@ -10,7 +10,7 @@ import * as uuid from 'uuid'
 const logger = createLogger('TodosAccess')
 const todoaccess: TodosAccess = new TodosAccess()
 const attachmentutils = new AttachmentUtils()
-const ATTACHMENT_S3_BUCKET=process.env.ATTACHMENT_S3_BUCKET
+const ATTACHMENT_S3_BUCKET = process.env.ATTACHMENT_S3_BUCKET
 
 export async function createTodo(userId: string, newTodo: CreateTodoRequest) {
   const todoId: string = uuid.v4()
@@ -19,35 +19,29 @@ export async function createTodo(userId: string, newTodo: CreateTodoRequest) {
     todoId: todoId,
     name: newTodo['name'],
     dueDate: newTodo['dueDate'],
-    attachmentUrl:  `https://${ATTACHMENT_S3_BUCKET}.s3.amazonaws.com/${todoId}`, 
+    attachmentUrl: `https://${ATTACHMENT_S3_BUCKET}.s3.amazonaws.com/${todoId}`,
     createdAt: new Date().getTime().toString(),
-    done: false,
+    done: false
   }
-  logger.info('new todo',newItem)
+  logger.info('new todo', newItem)
 
   return todoaccess.createTodo(newItem)
 }
 
 export async function deleteTodo(todoId: string, userId: string) {
-  todoaccess.deleteTodo(todoId, userId)
+  await todoaccess.deleteTodo(todoId, userId)
 }
 
-export async function updateTodo(
-  userId: string,
-  todoId: string,
-  updatedTodo: UpdateTodoRequest
-)
-{
+export async function updateTodo(userId: string,todoId: string,updatedTodo: UpdateTodoRequest) {
   const newItem: TodoUpdate = {
     name: updatedTodo['name'],
     dueDate: updatedTodo['dueDate'],
     done: updateTodo['done']
   }
-
-  return todoaccess.updateTodo(todoId, userId, newItem)
+  await todoaccess.updateTodo(todoId, userId, newItem)
 }
 
-export async function getTodosForUser(userId: string){
+export async function getTodosForUser(userId: string) {
   return todoaccess.getTodos(userId)
 }
 

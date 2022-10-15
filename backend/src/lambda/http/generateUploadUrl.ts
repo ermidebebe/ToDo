@@ -9,14 +9,14 @@ export const handler =
     const todoId = event.pathParameters.todoId
     // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
 
-    const URL = createAttachmentPresignedUrl(todoId)
-
+    const URL:string = await createAttachmentPresignedUrl(todoId)
+    
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': true
       },
-      body: JSON.stringify({ upload_url: { URL } })
+      body: JSON.stringify({ uploadUrl: URL})
     }
   }

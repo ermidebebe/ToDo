@@ -10,14 +10,14 @@ export const handler =
     const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
     const userId:string =getUserId(event)
 
-    const result= await updateTodo(userId,todoId,updatedTodo)
+    updateTodo(userId,todoId,updatedTodo)
     return{
-      statusCode:200,
+      statusCode:204,
       headers:{
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': true
       },
-      body: JSON.stringify({item:result})
+      body: JSON.stringify({})
     }
 
   }
