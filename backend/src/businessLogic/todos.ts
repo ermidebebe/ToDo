@@ -7,7 +7,7 @@ import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { createLogger } from '../utils/logger'
 import * as uuid from 'uuid'
 
-const logger = createLogger('TodosAccess')
+const logger = createLogger('todos')
 const todoaccess: TodosAccess = new TodosAccess()
 const attachmentutils = new AttachmentUtils()
 const ATTACHMENT_S3_BUCKET = process.env.ATTACHMENT_S3_BUCKET

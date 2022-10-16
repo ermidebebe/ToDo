@@ -1,15 +1,16 @@
 import * as AWS from 'aws-sdk'
-//import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
 import { TodoUpdate } from '../models/TodoUpdate'
 
-//const XAWS = AWSXRay.captureAWS(AWS)
+const AWSXRay = require('aws-xray-sdk')
+const XAWS = AWSXRay.captureAWS(AWS)
+
 const logger = createLogger('TodosAccess')
 
 export class TodosAccess {
-  dynamoDBClient: DocumentClient = new AWS.DynamoDB.DocumentClient()
+  dynamoDBClient: DocumentClient = new XAWS.DynamoDB.DocumentClient()
   todoTable: string = process.env.TODOS_TABLE
   async getTodos(userId: string) {
     const todos = await this.dynamoDBClient
@@ -20,7 +21,8 @@ export class TodosAccess {
         Select: 'ALL_ATTRIBUTES'
       })
       .promise()
-    logger.info(todos)
+
+    logger.info(`returned todos ${todos}`)
     return todos.Items
   }
 
@@ -30,28 +32,30 @@ export class TodosAccess {
       Item: todo
     }
     await this.dynamoDBClient.put(params).promise()
-    logger.info('new todo', todo)
+    logger.info(`new todo ${todo}`)
     return todo
   }
 
   async deleteTodo(todoId: string, userId: string) {
+    logger.info(`deleted todo ${todoId}`)
     await this.dynamoDBClient
       .delete({
         TableName: this.todoTable,
         Key: {
-          'userId': userId,
-          'todoId': todoId
+          userId: userId,
+          todoId: todoId
         }
       })
       .promise()
   }
 
   async updateTodo(todoId: string, userId: string, updatedTodo: TodoUpdate) {
+    logger.info(`updated todo ${updatedTodo}`)
     const params: DocumentClient.UpdateItemInput = {
       TableName: this.todoTable,
       Key: {
-        'userId': userId,
-        'todoId': todoId
+        userId: userId,
+        todoId: todoId
       },
       ExpressionAttributeNames: {
         '#name': 'name',
